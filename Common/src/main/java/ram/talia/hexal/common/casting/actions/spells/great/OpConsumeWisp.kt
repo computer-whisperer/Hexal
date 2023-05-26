@@ -6,7 +6,6 @@ import at.petrak.hexcasting.api.spell.iota.Iota
 import at.petrak.hexcasting.api.spell.mishaps.MishapInvalidIota
 import com.mojang.datafixers.util.Either
 import net.minecraft.server.level.ServerPlayer
-import ram.talia.hexal.api.HexalAPI
 import ram.talia.hexal.api.config.HexalConfig
 import ram.talia.hexal.api.spell.casting.IMixinCastingContext
 import ram.talia.hexal.common.entities.BaseCastingWisp
@@ -28,14 +27,10 @@ object OpConsumeWisp : SpellAction {
 
 		val consumer: Either<BaseCastingWisp, ServerPlayer> = if (mCast != null && mCast.wisp != null) Either.left(mCast.wisp) else Either.right(ctx.caster)
 
-		HexalAPI.LOGGER.info("consumer: $consumer, ${consumed.fightConsume(consumer)}")
-
 		val cost = when (consumed.fightConsume(consumer)) {
 			false  -> HexalConfig.server.consumeWispOwnCost
 			true   -> (HexalConfig.server.consumeWispOthersCostPerMedia * consumed.media).toInt()
 		}
-
-		HexalAPI.LOGGER.info("cost to consume $consumed is $cost")
 
 		return Triple(
 			Spell(consumed),
@@ -47,8 +42,6 @@ object OpConsumeWisp : SpellAction {
 	private data class Spell(val consumed: IMediaEntity<*>) : RenderedSpell {
 		@Suppress("CAST_NEVER_SUCCEEDS")
 		override fun cast(ctx: CastingContext) {
-			HexalAPI.LOGGER.info("cast method of Spell of OpConsumeWisp triggered targeting $consumed")
-
 			val mCast = ctx as? IMixinCastingContext
 
 			if (mCast != null && mCast.wisp != null)
@@ -56,7 +49,6 @@ object OpConsumeWisp : SpellAction {
 			else if (mCast != null)
 				mCast.consumedMedia += 19 * consumed.media / 20
 
-			HexalAPI.LOGGER.info("discarding $consumed")
 			consumed.get().discard()
 		}
 	}
